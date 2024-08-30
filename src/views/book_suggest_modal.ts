@@ -30,13 +30,11 @@ export class BookSuggestModal extends SuggestModal<Book> {
   renderSuggestion(book: Book, el: HTMLElement) {
     el.addClass('book-suggestion-item');
 
-    const coverImageUrl = book.coverLargeUrl || book.coverMediumUrl || book.coverSmallUrl || book.coverUrl;
-
-    if (this.showCoverImageInSearch && coverImageUrl) {
+    if (this.showCoverImageInSearch && book.coverSmallUrl) {
       el.createEl('img', {
         cls: 'book-cover-image',
         attr: {
-          src: coverImageUrl,
+          src: book.coverSmallUrl,
           alt: `Cover Image for ${book.title}`,
         },
       });

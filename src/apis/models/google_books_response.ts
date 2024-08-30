@@ -29,6 +29,12 @@ export interface AccessInfo {
   quoteSharingAllowed: boolean;
 }
 
+export interface Dimensions {
+  height: string;
+  width: string;
+  thickness: string;
+}
+
 export interface Epub {
   isAvailable: boolean;
   acsTokenLink?: string;
@@ -78,6 +84,8 @@ export interface VolumeInfo {
   industryIdentifiers: IndustryIdentifier[];
   readingModes: ReadingModes;
   pageCount?: number;
+  printedPageCount?: number;
+  dimensions?: Dimensions;
   printType: string;
   categories?: string[];
   maturityRating: string;
@@ -98,6 +106,10 @@ export interface VolumeInfo {
 export interface ImageLinks {
   smallThumbnail: string;
   thumbnail: string;
+  small?: string;
+  medium?: string;
+  large?: string;
+  extraLarge?: string;
 }
 
 export interface IndustryIdentifier {

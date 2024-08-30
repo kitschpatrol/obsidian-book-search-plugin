@@ -1,6 +1,6 @@
 import { apiGet, BaseBooksApiImpl } from '@apis/base_api';
 import { Book } from '@models/book.model';
-import { GoogleBooksResponse, VolumeInfo } from './models/google_books_response';
+import { GoogleBooksResponse, Item, VolumeInfo } from './models/google_books_response';
 
 export class GoogleBooksApi implements BaseBooksApiImpl {
   private static readonly MAX_RESULTS = 40;
@@ -34,7 +34,21 @@ export class GoogleBooksApi implements BaseBooksApiImpl {
       const params = this.buildSearchParams(query, options);
       const searchResults = await apiGet<GoogleBooksResponse>('https://www.googleapis.com/books/v1/volumes', params);
       if (!searchResults?.totalItems) return [];
-      return searchResults.items.map(({ volumeInfo }) => this.createBookItem(volumeInfo));
+      // This is a lot of requests. It would be better to only call getById on
+      // the user-selected book, but that would require a lot of changes to pass
+      // through the volume ID, and leak Google-specific implementation.
+      return Promise.all(searchResults.items.map(({ id }) => this.getById(id)));
+    } catch (error) {
+      console.warn(error);
+      throw error;
+    }
+  }
+
+  // Getting a specific volume provides additional image fields for the book cover
+  async getById(id: string): Promise<Book> {
+    try {
+      const result = await apiGet<Item>(`https://www.googleapis.com/books/v1/volumes/${id}`, { key: this.apiKey });
+      return this.createBookItem(result.volumeInfo);
     } catch (error) {
       console.warn(error);
       throw error;
@@ -64,12 +78,21 @@ export class GoogleBooksApi implements BaseBooksApiImpl {
       categories: item.categories,
       publisher: item.publisher,
       totalPage: item.pageCount,
-      coverUrl: item.imageLinks?.thumbnail ?? '',
-      coverSmallUrl: item.imageLinks?.smallThumbnail ?? '',
+      // Always provide the largest possible image
+      coverUrl: this.convertUrlToTls(
+        item.imageLinks?.extraLarge ||
+          item.imageLinks?.large ||
+          item.imageLinks?.medium ||
+          item.imageLinks?.small ||
+          item.imageLinks?.thumbnail ||
+          item.imageLinks?.smallThumbnail ||
+          '',
+      ),
+      coverSmallUrl: this.convertUrlToTls(item.imageLinks?.smallThumbnail ?? ''),
       publishDate: item.publishedDate || '',
       description: item.description,
-      link: item.canonicalVolumeLink || item.infoLink,
-      previewLink: item.previewLink,
+      link: this.convertUrlToTls(item.canonicalVolumeLink || item.infoLink),
+      previewLink: this.convertUrlToTls(item.previewLink),
     };
   }
 
@@ -97,6 +120,10 @@ export class GoogleBooksApi implements BaseBooksApiImpl {
 
   public formatList(list?: string[]): string {
     return list && list.length > 1 ? list.map(item => item.trim()).join(', ') : list?.[0] ?? '';
+  }
+
+  public convertUrlToTls(url: string): string {
+    return url.replace(/^http:\/\//, 'https://');
   }
 
   static convertGoogleBookImageURLSize(url: string, zoom: number) {

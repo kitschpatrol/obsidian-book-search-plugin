@@ -221,7 +221,7 @@ Please find here a definition of the possible variables to be used in your templ
 | description     | Book description.                                                                                                                                  |
 | publisher       | The publisher of the book.                                                                                                                         |
 | totalPage       | The total number of pages in the book.                                                                                                             |
-| coverUrl        | Book cover image URL.                                                                                                                              |
+| coverUrl        | Book cover image URL. The largest version available.                                                                                               |
 | coverSmallUrl   | A smaller book cover image URL.                                                                                                                    |
 | localCoverImage | Local path for the downloaded cover image. Requires activation of "Enabling Cover Images."                                                         |
 | publishDate     | The year the book was published.                                                                                                                   |
@@ -284,7 +284,6 @@ published_at: <%= book.publishDate.substring(0, 4) %>
 ```
 published_at: <%= book.publishDate.replace(/-/g,'') %>
 ```
-
 
 <br>
 

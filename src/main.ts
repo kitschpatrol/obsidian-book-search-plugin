@@ -70,12 +70,10 @@ export default class BookSearchPlugin extends Plugin {
 
     let contentBody = '';
 
-    if (enableCoverImageSave) {
-      const coverImageUrl = book.coverLargeUrl || book.coverMediumUrl || book.coverSmallUrl || book.coverUrl;
-      if (coverImageUrl) {
-        const imageName = makeFileName(book, this.settings.fileNameFormat, 'jpg');
-        book.localCoverImage = await this.downloadAndSaveImage(imageName, coverImagePath, coverImageUrl);
-      }
+    if (enableCoverImageSave && book.coverUrl) {
+      const imageName = makeFileName(book, this.settings.fileNameFormat, 'jpg');
+
+      book.localCoverImage = await this.downloadAndSaveImage(imageName, coverImagePath, book.coverUrl);
     }
 
     if (templateFile) {
